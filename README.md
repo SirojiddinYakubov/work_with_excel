@@ -12,15 +12,15 @@
 
 <div align="center">
   Webdasturlashga oid ko'proq yangiliklardan xabardor bo'lish uchun bizni kuzatib boring: <br>
-  <a href="https://www.youtube.com/channel/UCeJ6Sc3SaKKArAurnCwlJBw">YouTube</a>
+  <a target="_blank" href="https://www.youtube.com/channel/UCeJ6Sc3SaKKArAurnCwlJBw">YouTube</a>
   <span> | </span>
-  <a href="https://www.instagram.com/yakubovdeveloper">Instagram</a>
+  <a target="_blank" href="https://www.instagram.com/yakubovdeveloper">Instagram</a>
   <span> | </span>
-  <a href="https://www.facebook.com/yakubovdeveloper">Facebook</a>
+  <a target="_blank" href="https://www.facebook.com/yakubovdeveloper">Facebook</a>
   <span> | </span>
-  <a href="https://www.tiktok.com/@yakubovdeveloper">TikTok</a>
+  <a target="_blank" href="https://www.tiktok.com/@yakubovdeveloper">TikTok</a>
   <span> | </span>
-  <a href="https://t.me/yakubovdeveloper">Telegram</a>
+  <a target="_blank" href="https://t.me/yakubovdeveloper">Telegram</a>
 </div>
 
 ## Installation
