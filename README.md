@@ -5,7 +5,7 @@
 </div>
 
 <div align="center">
-  Ushbu video seriyamizda excel fayllar bilan ishlashni o'rganamiz. Excel fayldagi ma'lumotlarni o'qiymiz, o'qilgan ma'lumotlar asosida Django ma'lumotlar omborida objectlar yaratamiz. Objectlar yaratish vaqtida filter, zip, map kabi funksiyalar bilan tanishamiz va ushbu funksiyalar yordamida ma'lumotlarimizni filterlaymiz. Filterlangan ma'lumotlarni bulk_create methodi yordamida django ma'lumotlar omboriga yozamiz. So'ngida django ma'lumotlar omboridan ma'lumotlarni olib excel faylga yozishni o'rganamiz.
+  Ushbu video seriyamizda excel fayllar bilan ishlashni o'rganamiz. Excel fayldagi ma'lumotlarni o'qiymiz, o'qilgan ma'lumotlar asosida Djangodagi ma'lumotlar omborida objectlar yaratamiz. Objectlar yaratish vaqtida filter, zip, map kabi funksiyalar bilan tanishamiz va ushbu funksiyalar yordamida ma'lumotlarimizni filterlaymiz. Filterlangan ma'lumotlarni bulk_create methodi yordamida djangodagi ma'lumotlar omboriga yozamiz. Djangodagi ma'lumotlar omboridan ma'lumotlarni qayta filterlab olib excel faylga yozamiz. Excel fayldagi yacheyka va ustunlarga stil berib, ma'lumotlarni mavjud faylga va yangi faylga yozishni o'rganamiz.
 </div>
 
 <br>
