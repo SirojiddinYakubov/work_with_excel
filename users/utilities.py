@@ -1,11 +1,15 @@
 from typing import Union
 import openpyxl
 import os
+from io import BytesIO
+from django.db.models import QuerySet
 from openpyxl.styles import Font, Alignment
 from openpyxl.styles.colors import BLACK
 from conf import settings
 from datetime import datetime
 from users.models import CustomUser
+from openpyxl.writer.excel import save_virtual_workbook
+from openpyxl.utils import get_column_letter
 
 
 def get_file_path(file_name: str) -> str:
@@ -20,15 +24,15 @@ def filter_user_data(data: dict) -> bool:
     return all([bool(value) for value in data.values()])
 
 
-str_to_date = lambda value: datetime.strptime(value, "%d.%m.%Y").date()
-get_gender_value = lambda value: CustomUser.GENDER_MALE if value == 'erkak' else CustomUser.GENDER_FEMALE
+# str_to_date = lambda value: datetime.strptime(value, "%d.%m.%Y").date()
+# get_gender_value = lambda value: CustomUser.GENDER_MALE if value == 'erkak' else CustomUser.GENDER_FEMALE
 
 
 def get_real_value(data: dict) -> dict:
     if data['birthday']:
-        data['birthday'] = str_to_date(data['birthday'])
+        data['birthday'] = datetime.strptime(data['birthday'], "%d.%m.%Y").date()
     if data['gender']:
-        data['gender'] = get_gender_value(data['gender'])
+        data['gender'] = CustomUser.GENDER_MALE if data['gender'] == 'erkak' else CustomUser.GENDER_FEMALE
     return data
 
 
@@ -46,7 +50,7 @@ def users_data_parse_from_excel(file_name: str) -> Union[list[dict], tuple[dict]
     return list(map(get_real_value, filter(filter_user_data, datas)))
 
 
-def write_users_data_to_excel(file_name: str, sheet_name: str, users_data: Union[tuple, list]):
+def write_users_data_to_excel(file_name: str, sheet_name: str, users_data: Union[tuple, list, QuerySet]):
     # file_path = get_file_path(file_name=file_name)
     # book = openpyxl.open(filename=file_path)
     #
@@ -80,3 +84,39 @@ def write_users_data_to_excel(file_name: str, sheet_name: str, users_data: Union
             else:
                 cell.alignment = Alignment(horizontal='center', vertical='center')
     book.save(file_name)
+
+
+def users_salary_report_build(users: QuerySet) -> BytesIO:
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = 'отчёт'
+
+    sheet.column_dimensions['B'].width = 30
+    sheet.column_dimensions['C'].width = 20
+    sheet.column_dimensions['D'].width = 20
+    sheet.column_dimensions['E'].width = 20
+
+    headers = ['№', 'Электронная почта', 'Фамилия', 'Имя', 'Зарплата']
+    for i_col, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=1, column=i_col, value=header)
+        cell.font = Font(size=11, color=BLACK, bold=True)
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    for i_row, user_data in enumerate(users, start=2):
+        user_data = [i_row - 1] + list(user_data)
+        for i_col, value in enumerate(user_data, start=1):
+            cell = sheet.cell(row=i_row, column=i_col, value=value)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            if i_row == len(users) + 1 and i_col == len(user_data):
+                char = get_column_letter(i_col)
+
+                cell = sheet.cell(row=i_row + 1, column=i_col, value=f"=SUM({char}2:{char + str(i_row)})")
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.font = Font(size=14, color=BLACK, bold=True)
+
+                next_row = str(len(users) + 2)
+                sheet['A' + next_row] = 'Итого'
+                sheet.merge_cells(f"A{next_row}:D{next_row}")
+
+    return BytesIO(save_virtual_workbook(workbook))
