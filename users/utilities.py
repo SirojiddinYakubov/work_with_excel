@@ -10,6 +10,10 @@ from datetime import datetime
 from users.models import CustomUser
 from openpyxl.writer.excel import save_virtual_workbook
 from openpyxl.utils import get_column_letter
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+import smtplib
 
 
 def get_file_path(file_name: str) -> str:
@@ -120,3 +124,73 @@ def users_salary_report_build(users: QuerySet) -> BytesIO:
                 sheet.merge_cells(f"A{next_row}:D{next_row}")
 
     return BytesIO(save_virtual_workbook(workbook))
+
+
+def users_salary_report_file_build_for_email_send(users: QuerySet) -> bytes:
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = 'отчёт'
+
+    sheet.column_dimensions['B'].width = 30
+    sheet.column_dimensions['C'].width = 20
+    sheet.column_dimensions['D'].width = 20
+    sheet.column_dimensions['E'].width = 20
+
+    headers = ['№', 'Электронная почта', 'Фамилия', 'Имя', 'Зарплата']
+    for i_col, header in enumerate(headers, start=1):
+        cell = sheet.cell(row=1, column=i_col, value=header)
+        cell.font = Font(size=11, color=BLACK, bold=True)
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    for i_row, user_data in enumerate(users, start=2):
+        user_data = [i_row - 1] + list(user_data)
+        for i_col, value in enumerate(user_data, start=1):
+            cell = sheet.cell(row=i_row, column=i_col, value=value)
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+
+            if i_row == len(users) + 1 and i_col == len(user_data):
+                char = get_column_letter(i_col)
+
+                cell = sheet.cell(row=i_row + 1, column=i_col, value=f"=SUM({char}2:{char + str(i_row)})")
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.font = Font(size=14, color=BLACK, bold=True)
+
+                next_row = str(len(users) + 2)
+                sheet['A' + next_row] = 'Итого'
+                sheet.merge_cells(f"A{next_row}:D{next_row}")
+
+    output = BytesIO()
+    workbook.save(output)
+    return output.getvalue()
+
+
+class SmtpServer:
+
+    def __init__(self, recipients: list, file: bytes):
+        self.recipients = recipients
+        self.file = file
+        self.sender = settings.EMAIL_HOST_USER
+        self.sender_password = settings.EMAIL_HOST_PASSWORD
+        self.host = settings.EMAIL_HOST
+        self.port = settings.EMAIL_PORT
+        self.filename = 'report.xlsx'
+        self.subject = 'Salary Report'
+
+    def send(self):
+        msg = MIMEMultipart()
+        server = smtplib.SMTP(self.host, self.port)
+        server.starttls()
+        server.login(user=self.sender, password=self.sender_password)
+
+        msg['Subject'] = self.subject
+        msg["From"] = self.sender
+        msg["To"] = ", ".join(self.recipients)
+
+        xlsx = MIMEBase('application', 'vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        xlsx.set_payload(self.file)
+        encoders.encode_base64(xlsx)
+        xlsx.add_header('Content-Disposition', 'attachment', filename=self.filename)
+        msg.attach(xlsx)
+
+        server.sendmail(self.sender, self.recipients, msg.as_string())
+        server.quit()
